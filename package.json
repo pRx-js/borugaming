@@ -1,0 +1,48 @@
+{
+  "//1": "Botlar için altyapı",
+  "name": "prx-bot",
+  "version": "0.0.1",
+  "description": "Botlar için altyapı",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "canvas": "^2.6.1",
+    "chalk": "^4.0.0",
+    "common-tags": "^1.8.0",
+    "dateformat": "^3.0.3",
+    "discord.js": "^11.5.1",
+    "express": "^4.17.1",
+    "google-tts-api": "^0.0.4",
+    "libxmljs": "^0.19.7",
+    "math-expression-evaluator": "^1.2.22",
+    "moment": "^2.24.0",
+    "moment-duration-format": "^2.3.2",
+    "node-gyp": "^6.1.0",
+    "node-opus": "^0.3.3",
+    "node-superfetch": "^0.1.10",
+    "quick.db": "^7.1.1",
+    "request-promise-native": "^1.0.8",
+    "simple-youtube-api": "^5.2.1",
+    "sqlite3": "^4.1.1",
+    "steam-provider": "^0.3.2",
+    "superagent": "^5.2.2",
+    "tcmb-doviz": "^1.0.5",
+    "user-instagram": "^2.0.8",
+    "weather-js": "^2.0.0",
+    "ytdl-core": "^2.1.0"
+  },
+  "engines": {
+    "node": "8.x"
+  },
+  "repository": {
+    "url": "https://glitch.com/edit/#!/hello-sqlite"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "glitch",
+    "express"
+  ]
+}
