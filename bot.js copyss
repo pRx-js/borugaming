@@ -1,0 +1,945 @@
+const Discord = require('discord.js');
+const client = new Discord.Client();
+const ayarlar = require('./ayarlar.json');
+const chalk = require('chalk');
+const fs = require('fs');
+const moment = require('moment');
+require('./util/eventLoader')(client);
+const db = require('quick.db');
+const express = require('express');
+const app = express();
+const http = require('http');
+    app.get("/", (request, response) => {
+    console.log(`7/24`);
+    response.sendStatus(200);
+    });
+    app.listen(process.env.PORT);
+    setInterval(() => {
+    http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
+    }, 280000);
+
+var prefix = ayarlar.prefix;
+
+const log = message => {
+  console.log(`[${moment().format('YYYY-MM-DD HH:mm:ss')}] ${message}`);
+};
+
+client.on("message", async msg => {
+    if (msg.channel.type === "dm") return;
+      if(msg.author.bot) return;  
+        if (msg.content.length > 3) {
+         if (db.fetch(`capslock_${msg.guild.id}`)) {
+           let caps = msg.content.toUpperCase()
+           if (msg.content == caps) {
+             if (!msg.member.hasPermission("ADMINISTRATOR")) {
+               if (!msg.mentions.users.first()) {
+                 msg.delete()
+                 return msg.channel.send(`✋ Hey ${msg.author}, Capsini Kapat!`).then(m => m.delete(5000))
+     }
+       }
+     }
+   }
+  }
+});
+
+client.on('message',async message => {
+    const moment = require('moment'); //npm i moment
+const ms = require('ms') //npm i ms
+    var prefix = '!' //Bot Prefix !
+  var time = moment().format('Do MMMM YYYY , hh:mm');
+  var room;
+  var title;
+  var duration;
+  var currentTime = new Date(),
+hours = currentTime.getHours() + 3 ,
+minutes = currentTime.getMinutes(),
+done = currentTime.getMinutes() + duration,
+seconds = currentTime.getSeconds();
+if (minutes < 10) {
+minutes = "0" + minutes;
+}
+var suffix = "ÖÖ";
+if (hours >= 12) {
+suffix = "ÖS";
+hours = hours - 12;
+}
+if (hours == 0) {
+hours = 12;
+}
+ 
+  var filter = m => m.author.id === message.author.id;
+  if(message.content.startsWith(prefix + "çekiliş")) {
+ 
+    if(!message.guild.member(message.author).hasPermission('MANAGE_GUILD')) return message.channel.send(':heavy_multiplication_x:| **Çekiliş başlatmak için gerekli yetkiniz yok!**');
+    message.channel.send(`:eight_pointed_black_star:| **Çekiliş hangi kanalda olucak?**`).then(msg => {
+      message.channel.awaitMessages(filter, {
+        max: 1,
+        time: 20000,
+        errors: ['time']
+      }).then(collected => {
+        let room = message.guild.channels.find('name' , collected.first().content);
+        if(!room) return message.channel.send(':heavy_multiplication_x:| **Kanal bulunamadı! :(**');
+        room = collected.first().content;
+        collected.first().delete();
+        msg.edit(':eight_pointed_black_star:| **Çekilişin süresini belirleyiniz!**').then(msg => {
+          message.channel.awaitMessages(filter, {
+            max: 1,
+            time: 20000,
+            errors: ['time']
+          }).then(collected => {
+            if(!collected.first().content.match(/[1-60][s,m,h,d,w]/g)) return message.channel.send('**Geçersiz zaman girildi!**');
+            duration = collected.first().content
+            collected.first().delete();
+            msg.edit(':eight_pointed_black_star:| **Ödülü yazınız!**').then(msg => {
+              message.channel.awaitMessages(filter, {
+                max: 1,
+                time: 20000,
+                errors: ['time']
+              }).then(collected => {
+                title = collected.first().content;
+                collected.first().delete();
+                msg.delete();
+                message.delete();
+                try {
+                  let giveEmbed = new Discord.RichEmbed()
+                  .setDescription(`**${title}** \nKatılmak için 🎉 işaretine bas! \nKalan süre: ${duration} \n **Başladığı tarih :** ${hours}:${minutes}:${seconds} ${suffix}`)
+                  .setFooter(message.author.username, message.author.avatarURL);
+                  message.guild.channels.find("name" , room).send('🎉 **ÇEKİLİŞ BAŞLADI!!!** 🎉 ' , {embed: giveEmbed}).then(m => {
+                     let re = m.react('🎉');
+                     setTimeout(() => {
+                       let users = m.reactions.get("🎉").users
+                       let list = users.array().filter(u => u.id !== client.user.id);
+                       let gFilter = list[Math.floor(Math.random() * list.length) + 0]
+                       let endEmbed = new Discord.RichEmbed()
+                       .setAuthor(message.author.username, message.author.avatarURL)
+                       .setTitle(title)
+                       .addField('Çekiliş sona erdi!🎉',`Kazanan : ${gFilter} \nBitiş zamanı:`)
+                       .setTimestamp()
+                     m.edit('** 🎉 ÇEKİLİŞ BİTTİ 🎉**' , {embed: endEmbed});
+                    message.guild.channels.find("name" , room).send(`**Tebrikler ${gFilter}! \`${title}\` kazandın!**` , {embed: {}})
+                }, ms(duration));
+            });
+                } catch(e) {
+                message.channel.send(`:heavy_multiplication_x:| **Yetkim yok :d**`);
+                  console.log(e);
+                }
+              });
+            });
+          });
+        });
+      });
+    });
+  }
+});
+
+client.on("message", message => {
+
+//var i = db.fetch(`prefix_${message.guild.id}`)
+
+  
+    let afk_kullanici = message.mentions.users.first() || message.author;
+    if(message.content.startsWith(ayarlar.prefix+"afk")) return; 
+ if (message.author.bot === true) return;
+   
+
+     if(message.content.includes(`<@${afk_kullanici.id}>`))
+         if(db.has(`afks_${afk_kullanici.id}`)) {
+             const afksuan = new Discord.RichEmbed()
+                     .setColor("RANDOM")
+                     .setDescription(`**${client.users.get(afk_kullanici.id).tag}** adlı kullanıcı şuanda AFK! \n**Sebep:** \n${db.fetch(`afks_${afk_kullanici.id}`)}`)
+                     message.channel.send(afksuan)
+         }
+   
+         if(db.has(`afks_${message.author.id}`)) {
+                        let user = message.member
+
+             const basarili = new Discord.RichEmbed()
+
+                 .setColor("GREEN")
+                 .setDescription("<@"+`${message.author.id}`+">"+"**Başarıyla AFK modundan çıktın :onay:**")
+                              user.setNickname(message.author.username)
+
+                message.channel.send(basarili)
+             db.delete(`afks_${message.author.id}`)
+         } 
+
+       });
+
+client.on('message', msg => {
+  const reason = msg.content.split(" ").slice(1).join(" ");
+  
+  if (msg.channel.name== '🆘hemen-satın-al') { 
+  if (msg.guild.channels.find('name', `sipariş-${msg.author.id}`)) return msg.author.send(`Zaten Halihazırda Açılmış Bir Destek Talebiniz Bulunmaktadır.`),
+    msg.delete()
+  }
+  
+  
+  if (msg.channel.name== '🆘hemen-satın-al') { 
+    const hatay = new Discord.RichEmbed()
+    .addField(" Hata ", `Bu Sunucuda \`Discord Destek 7/24\` Adında Bir Rol Yok!`)
+    .setColor("RED")
+    
+    if (!msg.guild.roles.exists("name", "Discord Destek 7/24")) return msg.author.send(hatay) + msg.guild.owner.send(`${msg.guild.name} Adlı Sunucunda, \`Destek Ekibi\` Adlı Bir Rol Olmadığı İçin, Hiçkimse Destek Talebi Açamıyor!`);
+    if(msg.guild.channels.find('name', 'siparişler')) {
+      msg.guild.createChannel(`sipariş-${msg.author.id}`, "text").then(c => {
+      const category = msg.guild.channels.find('name', 'siparişler')
+      c.setParent(category.id)
+      let role = msg.guild.roles.find("name", "Discord Destek 7/24");
+      let role2 = msg.guild.roles.find("name", "@everyone");
+      c.overwritePermissions(role, {
+          SEND_MESSAGES: true,
+          READ_MESSAGES: true
+      });
+      c.overwritePermissions(role2, {
+          SEND_MESSAGES: false,
+          READ_MESSAGES: false
+      });
+      c.overwritePermissions(msg.author, {
+          SEND_MESSAGES: true,
+          READ_MESSAGES: true
+      });
+
+      const embed = new Discord.RichEmbed()
+      .setColor("RANDOM")
+      .setAuthor(`${client.user.username} Sipariş`)
+      .addField(`**Merhaba ${msg.author.username}!**`, `Ekip Yetkilileri burada seninle ilgilenecektir. \nSipariş talebini kapatmak için \`${prefix}kapat\` yazabilirsin.`)
+      .addField(`🎫 Talep Sebebi:`, `${msg.content}`, true)
+      .setTimestamp()
+      c.send({ embed: embed });
+      c.send(`@everyone`)
+      msg.delete()
+      }).catch(console.error);
+    }
+  }
+});
+  
+client.on("message", message => {
+if (message.content.toLowerCase().startsWith(prefix + `kapat`)) {
+    if (!message.channel.name.startsWith(`sipariş-`)) return message.channel.send(`Bu komut sadece Sipariş Talebi kanallarında kullanılablir!`);
+
+    var deneme = new Discord.RichEmbed()
+    .setColor("RED")
+    .setAuthor(`Sipariş Talebi Kapatma İşlemi`)
+    .setDescription(`Sipariş talebini kapatmayı onaylamak için 10 saniye içinde \`evet\` yazınız.`)
+    .setFooter(`${client.user.username} Sipariş Sistemi`)
+    message.channel.send(deneme)
+    .then((m) => {
+      message.channel.awaitMessages(response => response.content === 'evet', {
+        max: 1,
+        time: 10000,
+        errors: ['time'],
+      })
+      .then((collected) => {
+          message.channel.delete();
+        })
+        .catch(() => {
+          m.edit('Sipariş Talebi kapatma isteğin zaman aşımına uğradı!').then(m2 => {
+              m2.delete();
+          }, 3000);
+        });
+    });
+}
+});
+
+client.on('guildMemberAdd', async (member, guild, msg, args) => {
+   let user = client.users.get(member.id);
+    const resim1 = `<a:dikkat:685171462604455979> **Güvensiz**`
+    const resim2 = `<a:dogrulandi:685171502672642084> **Güvenli**`
+    const kurulus = new Date() - user.createdAt;
+    const gün = moment(kurulus).format('dddd');  
+    var kontrol;
+      if (kurulus > 2629800000) kontrol = resim2
+    if (kurulus < 2629800000) kontrol = resim1
+
+        let katilma = moment(member.user.createdAt).format("DD MMMM YYYY, dddd")
+
+        .replace("Monday", `**Pazartesi**`)
+        .replace("Tuesday", `**Salı**`)
+        .replace("Wednesday", `**Çarşamba**`)
+        .replace("Thursday", `**Perşembe**`)
+        .replace("Friday", `**Cuma**`)
+        .replace("Saturday", `**Cumartesi**`)
+        .replace("Sunday", `**Pazar**`)
+
+        .replace("January", `**Ocak**`)
+        .replace("February", `**Şubat**`)
+        .replace("March", `**Mart**`)
+        .replace("April", `**Nisan**`)
+        .replace("May", `**Mayıs**`)
+        .replace("June", `**Haziran**`)
+        .replace("July", `**Temmuz**`)
+        .replace("August", `**Ağustos**`)
+        .replace("September", `**Eylül**`)
+        .replace("October", `**Ekim**`)
+        .replace("November", `**Kasım**`)
+        .replace("December", `**Aralık**`)
+      
+    let hgbbkanal = await db.fetch(`hgbbkanal_${member.guild.id}`)
+    let id = member.id
+    const emoji = (client.emojis.find("name", "sagtarafanimasyon").toString())
+    const siren = (client.emojis.find("name", "siren").toString())
+    const dogrulandi = (client.emojis.find("name", "dogrulandi").toString())
+    const dikkat = (client.emojis.find("name", "dikkat").toString())
+    if (!hgbbkanal) return
+
+    var embed = new Discord.RichEmbed()
+        .setAuthor(`Sunucumuza Hoşgeldin, ${member.user.username}`)
+        .setDescription(`${emoji} Seninle Birlikte **${member.guild.memberCount}** Kişi Olduk!`)
+        .addField(`<a:giris:685171347529269309> Katılan Kişi:`,`<@${id}>`)
+        .addField(`<a:yukleniyor:685173227194155016> ID:`, `**${id}**`)
+        .addField(`<a:yukleniyor:685173227194155016> Discord'a Katılım Tarihi`, katilma)
+        .addField(`<a:yukleniyor:685173227194155016> Güven Faktörü`, kontrol)
+        .setThumbnail(member.user.avatarURL)
+        .setColor('GREEN') 
+    member.guild.channels.get(hgbbkanal).send(embed)
+})
+
+client.on('guildMemberRemove', async (member, guild, msg, args) => {
+       
+       let katilma = moment.utc(member.user.joinedAt).format("DD MMMM YYYY, dddd")
+
+        .replace("Monday", `**Pazartesi**`)
+        .replace("Tuesday", `**Salı**`)
+        .replace("Wednesday", `**Çarşamba**`)
+        .replace("Thursday", `**Perşembe**`)
+        .replace("Friday", `**Cuma**`)
+        .replace("Saturday", `**Cumartesi**`)
+        .replace("Sunday", `**Pazar**`)
+
+        .replace("January", `**Ocak**`)
+        .replace("February", `**Şubat**`)
+        .replace("March", `**Mart**`)
+        .replace("April", `**Nisan**`)
+        .replace("May", `**Mayıs**`)
+        .replace("June", `**Haziran**`)
+        .replace("July", `**Temmuz**`)
+        .replace("August", `**Ağustos**`)
+        .replace("September", `**Eylül**`)
+        .replace("October", `**Ekim**`)
+        .replace("November", `**Kasım**`)
+        .replace("December", `**Aralık**`)
+      
+    let hgbbkanal = await db.fetch(`hgbbkanal_${member.guild.id}`)
+    let id = member.id
+    const emoji = (client.emojis.find("name", "sagtarafanimasyon").toString())
+    if (!hgbbkanal) return
+
+    var embed = new Discord.RichEmbed()
+        .setAuthor(`Görüşürüz, ${member.user.username}`)
+        .setDescription(`${emoji} Çıkan Kişiyle Birlikte **${member.guild.memberCount}** kişi kaldık!`)
+        .addField(`<a:cikis:685171415720132665> Ayrılan Kişi:`,`**${member.user.tag}**`)
+        .addField(`<a:dikkat:685171462604455979> ID:`, `**${id}**`)
+        .setThumbnail(member.user.avatarURL)
+    member.guild.channels.get(hgbbkanal).send(embed)
+})
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'merhaba') {
+await msg.channel.send(`**Sanada Merhaba <@${msg.author.id}>**`)
+}
+});
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'merhabalar') {
+await msg.channel.send(`**Sanada Merhaba <@${msg.author.id}>**`)
+}
+});
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'selam') {
+await msg.channel.send(`**Aleyküm Selam <@${msg.author.id}>**`)
+}
+});
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'selamlar') {
+await msg.channel.send(`**Aleyküm Selam <@${msg.author.id}>**`)
+}
+});
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'günaydın') {
+await msg.channel.send(`**Sanada Günaydın <@${msg.author.id}>**`)
+}
+});
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'günaydınlar') {
+await msg.channel.send(`**Sanada Günaydın <@${msg.author.id}>**`)
+}
+});
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'iyigeceler') {
+await msg.channel.send(`**Iyi Geceler <@${msg.author.id}>**`)
+}
+});
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'iyi geceler') {
+await msg.channel.send(`**Iyi Geceler <@${msg.author.id}>**`)
+}
+});
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'iigcler') {
+await msg.channel.send(`**Iyi Geceler <@${msg.author.id}>**`)
+}
+});
+
+
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'sa') {
+await msg.channel.send('**Aleyküm Selam, Hoşgeldin**')
+}
+});
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'selamün aleyküm') {
+await msg.channel.send('**Aleyküm Selam, Hoşgeldin**')
+}
+});
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'selamun aleyküm') {
+await msg.channel.send('**Aleyküm Selam, Hoşgeldin**')
+}
+});
+
+client.on('message', async msg => {
+if (msg.content.toLowerCase() === 'selamün aleykum') {
+await msg.channel.send('**Aleyküm Selam, Hoşgeldin**')
+}
+});
+
+client.on('message', async message => {
+   if (message.channel.type === "dm") return;
+    if(message.author.bot) return;  
+  let küfürEngel = db.fetch(`kufurEngel_${message.guild.id}`)
+  if (küfürEngel == 'Açık') {
+  
+    var küfürEtme = new Discord.RichEmbed()
+    .setColor ('#480000')
+    .setAuthor (`${message.author.tag} küfür etti!`, message.author.displayAvatarURL)
+    .setDescription (`**<@${message.author.id}>, küfür yasak dostum!**`)
+    .setFooter (client.user.username, client.user.displayAvatarURL)
+    .setTimestamp ()
+  
+    var küfürListesi = ["oç", "amk", "ananı sikiyim", "ananıskm", "piç", "amk", "amsk", "sikim", "sikiyim", "orospu çocuğu", "piç kurusu", "kahpe", "orospu", "mal", "sik", "yarrak", "amcık", "amık", "yarram", "sikimi ye", "mq", "aq", "amq","0c","0ç"] // Daha fazla küfür ekleyebilirsiniz.
+  
+    for (
+      var Küfür = 0; Küfür < küfürListesi.length; Küfür++
+    ) {
+      if (message.content.includes(küfürListesi[Küfür])) {
+        message.delete()
+        message.channel.send (küfürEtme)
+        break
+      }
+    }
+  }
+})
+
+client.on("message", async message => {
+    let sayac = JSON.parse(fs.readFileSync("./ayarlar/sayac.json", "utf8"));
+    if(sayac[message.guild.id]) {
+        if(sayac[message.guild.id].sayi <= message.guild.members.size) {
+            const embed = new Discord.RichEmbed()
+                .setDescription(`Tebrikler, başarılı bir şekilde ${sayac[message.guild.id].sayi} kullanıcıya ulaştık!`)
+                .setColor("0x808080")
+                .setTimestamp()
+            message.channel.send({embed})
+            delete sayac[message.guild.id].sayi;
+            delete sayac[message.guild.id];
+            fs.writeFile("./ayarlar/sayac.json", JSON.stringify(sayac), (err) => {
+                console.log(err)
+            })
+        }
+    }
+})
+client.on("guildMemberRemove", async member => {
+        let sayac = JSON.parse(fs.readFileSync("./ayarlar/sayac.json", "utf8"));
+  let giriscikis = JSON.parse(fs.readFileSync("./ayarlar/sayac.json", "utf8"));  
+  let embed = new Discord.RichEmbed()
+    .setTitle('')
+    .setDescription(``)
+ .setColor("RED")
+    .setFooter("", client.user.avatarURL);
+ 
+  if (!giriscikis[member.guild.id].kanal) {
+    return;
+  }
+ 
+  try {
+    let giriscikiskanalID = giriscikis[member.guild.id].kanal;
+    let giriscikiskanali = client.guilds.get(member.guild.id).channels.get(giriscikiskanalID);
+    giriscikiskanali.send(`:outbox_tray: \`${member.user.tag}\` aramızdan ayrıldı! \`${sayac[member.guild.id].sayi}\` Kişi olmamıza \`${sayac[member.guild.id].sayi - member.guild.memberCount}\` kişi kaldı!`);
+  } catch (e) { 
+    return console.log(e)
+  }
+ 
+});
+client.on("guildMemberAdd", async member => {
+        let sayac = JSON.parse(fs.readFileSync("./ayarlar/sayac.json", "utf8"));
+  let giriscikis = JSON.parse(fs.readFileSync("./ayarlar/sayac.json", "utf8"));  
+  let embed = new Discord.RichEmbed()
+    .setTitle('')
+    .setDescription(``)
+ .setColor("GREEN")
+    .setFooter("", client.user.avatarURL);
+ 
+  if (!giriscikis[member.guild.id].kanal) {
+    return;
+  }
+ 
+  try {
+    let giriscikiskanalID = giriscikis[member.guild.id].kanal;
+    let giriscikiskanali = client.guilds.get(member.guild.id).channels.get(giriscikiskanalID);
+    giriscikiskanali.send(`:inbox_tray: \`${member.user.tag}\` aramıza katıldı! \`${sayac[member.guild.id].sayi}\` Kişi olmamıza \`${sayac[member.guild.id].sayi - member.guild.memberCount}\` kişi kaldı!`);
+  } catch (e) { 
+    return console.log(e)
+  }
+ 
+});
+
+
+const botadi = "Oyuncu Marketim"
+
+client.on('messageDelete', message => {
+  let modlogs = db.get(`modlogkanaly_${message.guild.id}`)
+  const modlogkanal = message.guild.channels.find(kanal => kanal.id === modlogs);
+  if(!modlogs) return;
+  if(modlogs) {
+    if (message.content.length > 1024) {
+      modlogkanal.send({embed: {
+    color: 3447003,
+    author: {
+      name: `${message.author.tag} tarafından gönderilen bir mesaj silindi`,
+      icon_url: message.author.DisplayAvatarURL
+    },
+    fields: [{
+        name: `Silinen mesaj 1024 karakterden fazla mesajı gösteremem`,
+        value: `\`\`\`Bilinmiyor...\`\`\``
+      }
+    ],
+    timestamp: new Date(),
+    footer: {
+      icon_url: message.author.DisplayAvatarURL,
+      text: `${botadi} | Mod-Log Sistemi`
+    }
+  }
+});
+    } else {
+      modlogkanal.send({embed: {
+    color: 3447003,
+    author: {
+      name: `${message.author.tag} kullanıcısının mesajı silindi\n`,
+      icon_url: message.author.DisplayAvatarURL
+    },
+    fields: [{
+        name: `Silinen mesaj:`,
+        value: `\`\`\` ${message.content} \`\`\``
+      }
+    ],
+    timestamp: new Date(),
+    footer: {
+      icon_url: message.author.DisplayAvatarURL,
+      text: `${botadi} | Mod-Log Sistemi`
+    }
+  }
+});
+    }
+  }
+})
+
+
+client.on('guildBanAdd', async (guild, user) => {
+  let modlogs = db.get(`modlogkanaly_${guild.id}`)
+  const modlogkanal = guild.channels.find(kanal => kanal.id === modlogs);
+  if(!modlogs) return;
+  if(modlogs) {
+    let embed = new Discord.RichEmbed()
+    .setColor("3447003")
+    .setAuthor("Bir kişi sunucudan yasaklandı")
+    .setThumbnail(user.avatarURL||user.defaultAvatarURL)
+    .addField(`Yasaklanan kişi`, `\`\`\` ${user.tag} \`\`\` `)
+    .setFooter(`${botadi} | Mod-Log Sistemi`)
+    .setTimestamp()
+    modlogkanal.send(embed)
+  }
+});
+
+client.on('guildBanRemove', async (guild, user) => {
+  let modlogs = db.get(`modlogkanaly_${guild.id}`)
+  const modlogkanal = guild.channels.find(kanal => kanal.id === modlogs);
+  if(!modlogs) return;
+  if(modlogs) {
+    let embed = new Discord.RichEmbed()
+    .setColor("3447003")
+    .setAuthor("Bir kişinin yasağı kaldırıldı")
+    .setThumbnail(user.avatarURL||user.defaultAvatarURL)
+    .addField(`Yasağı kaldırılan kişi`, `\`\`\` ${user.tag} \`\`\` `)
+    .setFooter(`${botadi} | Mod-Log Sistemi`)
+    .setTimestamp()
+    modlogkanal.send(embed)
+  }
+});
+
+client.on('channelCreate', async channel => {
+  let modlogs = db.get(`modlogkanaly_${channel.guild.id}`)
+  const modlogkanal = channel.guild.channels.find(kanal => kanal.id === modlogs);
+  if(!modlogs) return;
+  if(modlogs) {
+    if (channel.type === "text") {
+      modlogkanal.send({embed: {
+      color: 3447003,
+      fields: [{
+          name: `Bir Kanal Oluşturuldu. \nOluşturulan Kanalin İsmi:`,
+          value: `\`\`\` ${channel.name} \`\`\``
+        },
+        {
+          name: `Oluşturulan Kanalin Türü`,
+          value: `\`\`\` Metin Kanalı \`\`\``
+        }
+      ],
+      timestamp: new Date(),
+      footer: {
+        text: `${botadi} | Mod-Log Sistemi`
+      }
+     }});
+    } else {
+      if (channel.type === "voice") {
+       modlogkanal.send({embed: {
+    color: 3447003,
+    fields: [{
+        name: `Bir Kanal Oluşturuldu. \nOluşturulan Kanalin İsmi:`,
+        value: `\`\`\` ${channel.name} \`\`\``
+      },
+      {
+        name: `Oluşturulan Kanalin Türü`,
+        value: `\`\`\` Ses Kanalı \`\`\``
+      }
+    ],
+    timestamp: new Date(),
+    footer: {
+      text: `${botadi} | Mod-Log Sistemi`
+    }
+  }
+}); 
+      }
+    }
+  }
+});
+
+client.on('channelDelete', async channel => {
+  let modlogs = db.get(`modlogkanaly_${channel.guild.id}`)
+  const modlogkanal = channel.guild.channels.find(kanal => kanal.id === modlogs);
+  if(!modlogs) return;
+  if(modlogs) {
+    if (channel.type === "text") {
+      modlogkanal.send({embed: {
+      color: 3447003,
+    fields: [{
+        name: `Bir Kanal Silindi. \nSilinen Kanalin İsmi:`,
+        value: `\`\`\` ${channel.name} \`\`\``
+      },
+      {
+        name: `Silinen Kanalin Türü`,
+        value: `\`\`\` Metin Kanalı \`\`\``
+      }
+      ],
+      timestamp: new Date(),
+      footer: {
+        text: `${botadi} | Mod-Log Sistemi`
+      }
+     }});
+    } else {
+      if (channel.type === "voice") {
+       modlogkanal.send({embed: {
+    color: 3447003,
+    fields: [{
+        name: `Bir Kanal Silindi. \nSilinen Kanalin İsmi:`,
+        value: `\`\`\` ${channel.name} \`\`\``
+      },
+      {
+        name: `Silinen Kanalin Türü`,
+        value: `\`\`\` Ses Kanalı \`\`\``
+      }
+    ],
+    timestamp: new Date(),
+    footer: {
+      text: `${botadi} | Mod-Log Sistemi`
+    }
+  }
+}); 
+      }
+    }
+  }
+});
+
+client.on('roleDelete', async role => {
+  let modlogs = db.get(`modlogkanaly_${role.guild.id}`)
+  const modlogkanal = role.guild.channels.find(kanal => kanal.id === modlogs);
+  if(!modlogs) return;
+  if(modlogs) {
+    modlogkanal.send({embed: {
+    color: 3447003,
+    fields: [{
+        name: `Bir Rol Silindi. \nSilinen Rolun İsmi:`,
+        value: `\`\`\` ${role.name} \`\`\``
+      }
+    ],
+    timestamp: new Date(),
+    footer: {
+      text: `${botadi} | Mod-Log Sistemi`
+    }
+  }
+});
+  }
+});
+
+client.on('emojiDelete', async emoji => {
+  let modlogs = db.get(`modlogkanaly_${emoji.guild.id}`)
+  const modlogkanal = emoji.guild.channels.find(kanal => kanal.id === modlogs);
+  if(!modlogs) return;
+  if(modlogs) {
+    modlogkanal.send({embed: {
+    color: 3447003,
+    fields: [{
+        name: `Bir Emoji Silindi. \nSilinen Emojinin İsmi:`,
+        value: `\`\`\` ${emoji.name} \`\`\``
+      }
+    ],
+    timestamp: new Date(),
+    footer: {
+      text: `${botadi} | Mod-Log Sistemi`
+    }
+  }
+});
+  
+  }
+});
+
+
+client.on('roleCreate', async role => {
+  let modlogs = db.get(`modlogkanaly_${role.guild.id}`)
+  const modlogkanal = role.guild.channels.find(kanal => kanal.id === modlogs);
+  if(!modlogs) return;
+  if(modlogs) {
+     modlogkanal.send({embed: {
+    color: 3447003,
+    fields: [{
+        name: `Yeni Bir Rol Oluşturuldu. \nOluşturulan Rolun İsmi:`,
+        value: `\`\`\` ${role.name} \`\`\``
+      }
+    ],
+    timestamp: new Date(),
+    footer: {
+      text: `${botadi} | Mod-Log Sistemi`
+    }
+  }
+});
+  }
+});
+
+
+client.on('messageUpdate', async (oldMessage, newMessage) => {
+  let modlogs = db.get(`modlogkanaly_${oldMessage.guild.id}`)
+  const modlogkanal = oldMessage.guild.channels.find(kanal => kanal.id === modlogs);
+  if(!modlogs) return;
+  if(modlogs) {
+    if (oldMessage.author.bot) {
+        return false;
+    }
+
+    if (!oldMessage.guild) {
+        return false;
+    }
+
+    if (oldMessage.content == newMessage.content) {
+        return false;
+    }
+    modlogkanal.send({embed: {
+      color: 3447003,
+      author: {
+      name: `${oldMessage.author.tag} mesajını düzenledi:\n`,
+      icon_url: oldMessage.author.DisplayAvatarURL
+      },
+      fields: [{
+        name: `Eski mesaj:`,
+        value: `\`\`\` ${oldMessage.content} \`\`\``
+      },
+      {
+        name: `Yeni Mesaj:`,
+        value: `\`\`\` ${newMessage.content} \`\`\``
+      }
+      ],
+      timestamp: new Date(),
+      footer: {
+      icon_url: oldMessage.author.DisplayAvatarURL,
+      text: `${botadi} | Mod-Log Sistemi`
+      }
+    }
+    });
+  }
+});
+
+
+client.on('emojiCreate', async emoji => {
+  let modlogs = db.get(`modlogkanaly_${emoji.guild.id}`)
+  const modlogkanal = emoji.guild.channels.find(kanal => kanal.id === modlogs);
+  if(!modlogs) return;
+  if(modlogs) {
+    modlogkanal.send({embed: {
+    color: 3447003,
+    fields: [{
+        name: `Bir emoji eklendi. \nEklenen Emojinin İsmi:`,
+        value: `\`\`\` ${emoji.name} \`\`\``
+      }
+    ],
+    timestamp: new Date(),
+    footer: {
+      text: `${botadi} | Mod-Log Sistemi`
+    } 
+   } 
+});
+  }
+});
+
+client.on('guildMemberAdd', async (member, guild, message) => {
+
+let role = await  db.fetch(`otorolisim_${member.guild.id}`)
+ let otorol = await db.fetch(`autoRole_${member.guild.id}`)
+ let i = await db.fetch(`otorolKanal_${member.guild.id}`)
+ if (!otorol || otorol.toLowerCase() === 'yok') return;
+else {
+ try {
+  
+
+  if (!i) return 
+
+  member.addRole(member.guild.roles.get(otorol))
+     member.guild.channels.get(i).send(`**Sunucumuza Yeni Katılan** \`${member.user.tag}\` **Kullanıcısına** \`${role}\` **Rolü verildi.**`)  } catch (e) {
+ console.log(e)
+}
+}
+});
+
+client.on("message", async msg => {
+    if(msg.channel.type === "dm") return;
+        
+    let i = await db.fetch(`reklamFiltre_${msg.guild.id}`)  
+          if (i == 'acik') {
+              const reklam = ["discord.app", "discord.gg", "invite","discordapp","discordgg", ".com", ".net", ".xyz", ".tk", ".pw", ".io", ".me", ".gg", "www.", "https", "http", ".gl", ".org", ".com.tr", ".biz", ".party", ".rf.gd", ".az",'.scr'];
+              if (reklam.some(word => msg.content.toLowerCase().includes(word))) {
+                try {
+                  if (!msg.member.hasPermission("MANAGE_CHANNELS")) {
+                    msg.delete();                    
+                    const embed = new Discord.RichEmbed()
+                    .setColor("RANDOM")
+                    .setFooter('Beyaz  Zenci Bot Reklamı engellendi.', client.user.avatarURL)
+                    .setAuthor(msg.guild.owner.user.username, msg.guild.owner.user.avatarURL)
+                    .setDescription("Bsistemi, " + `***${msg.guild.name}***` + " adlı sunucunuzda reklam yakaladı.")
+                    .addField('Reklamı yapan kişi', 'Kullanıcı: '+ msg.author.tag +'\nID: '+ msg.author.id, true)
+                    .addField('Engellenen mesaj', msg.content, true)
+                    .setTimestamp()                   
+                    return msg.channel.send(`✋${msg.author}, Burda Link Paylaşmak Yasak !`).then(msg => msg.delete(5000));
+                   return client.channels.get("584149263290990604").send(embed);
+                  }             
+                } catch(err) {
+                  console.log(err);
+                }
+              }
+          }
+          if (!i) return;
+          }); 
+
+
+
+
+client.commands = new Discord.Collection();
+client.aliases = new Discord.Collection();
+fs.readdir('./komutlar/', (err, files) => {
+  if (err) console.error(err);
+  log(`${files.length} komut yüklenecek.`);
+  files.forEach(f => {
+    let props = require(`./komutlar/${f}`);
+    log(`Yüklenen komut: ${props.help.name}.`);
+    client.commands.set(props.help.name, props);
+    props.conf.aliases.forEach(alias => {
+      client.aliases.set(alias, props.help.name);
+    });
+  });
+});
+
+client.reload = command => {
+  return new Promise((resolve, reject) => {
+    try {
+      delete require.cache[require.resolve(`./komutlar/${command}`)];
+      let cmd = require(`./komutlar/${command}`);
+      client.commands.delete(command);
+      client.aliases.forEach((cmd, alias) => {
+        if (cmd === command) client.aliases.delete(alias);
+      });
+      client.commands.set(command, cmd);
+      cmd.conf.aliases.forEach(alias => {
+        client.aliases.set(alias, cmd.help.name);
+      });
+      resolve();
+    } catch (e){
+      reject(e);
+    }
+  });
+};
+
+client.load = command => {
+  return new Promise((resolve, reject) => {
+    try {
+      let cmd = require(`./komutlar/${command}`);
+      client.commands.set(command, cmd);
+      cmd.conf.aliases.forEach(alias => {
+        client.aliases.set(alias, cmd.help.name);
+      });
+      resolve();
+    } catch (e){
+      reject(e);
+    }
+  });
+};
+
+client.unload = command => {
+  return new Promise((resolve, reject) => {
+    try {
+      delete require.cache[require.resolve(`./komutlar/${command}`)];
+      let cmd = require(`./komutlar/${command}`);
+      client.commands.delete(command);
+      client.aliases.forEach((cmd, alias) => {
+        if (cmd === command) client.aliases.delete(alias);
+      });
+      resolve();
+    } catch (e){
+      reject(e);
+    }
+  });
+};
+
+client.elevation = message => {
+  if(!message.guild) {
+	return; }
+  let permlvl = 0;
+  if (message.member.hasPermission("BAN_MEMBERS")) permlvl = 2;
+  if (message.member.hasPermission("ADMINISTRATOR")) permlvl = 3;
+  if (message.author.id === ayarlar.sahip) permlvl = 4;
+  return permlvl;
+};
+
+var regToken = /[\w\d]{24}\.[\w\d]{6}\.[\w\d-_]{27}/g;
+
+client.on('warn', e => {
+  console.log(chalk.bgYellow(e.replace(regToken, 'that was redacted')));
+});
+
+client.on('error', e => {
+  console.log(chalk.bgRed(e.replace(regToken, 'that was redacted')));
+});
+
+client.login(process.env.TOKEN);
